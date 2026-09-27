@@ -16,6 +16,9 @@ class Input {
   mouseY = 0;
   mouseDown = false;
   rightDown = false;
+  touch = false;
+  touchDash = false;
+  touchSpecial = false;
   private rightPressed = false;
   padAxes = { x: 0, y: 0 };
   private navQueue: NavDir[] = [];
@@ -45,22 +48,38 @@ class Input {
       this.mouseDown = false;
       this.rightDown = false;
     });
-    target.addEventListener('mousemove', (e) => {
-      this.mouseX = e.clientX;
-      this.mouseY = e.clientY;
+    // pointer events cover mouse, pen and touch (touch = hold to move toward the finger)
+    let movePointer = -1;
+    target.addEventListener('pointermove', (e) => {
+      if (movePointer === -1 || e.pointerId === movePointer || e.pointerType === 'mouse') {
+        this.mouseX = e.clientX;
+        this.mouseY = e.clientY;
+      }
     });
-    target.addEventListener('mousedown', (e) => {
+    target.addEventListener('pointerdown', (e) => {
       this.device = 'kb';
-      if (e.button === 0) this.mouseDown = true;
+      if (e.pointerType === 'touch') this.touch = true;
+      const onCanvas = (e.target as HTMLElement).tagName === 'CANVAS';
+      if (e.button === 0 && onCanvas && movePointer === -1) {
+        movePointer = e.pointerId;
+        this.mouseDown = true;
+        this.mouseX = e.clientX;
+        this.mouseY = e.clientY;
+      }
       if (e.button === 2) {
         this.rightDown = true;
         this.rightPressed = true;
       }
     });
-    window.addEventListener('mouseup', (e) => {
-      if (e.button === 0) this.mouseDown = false;
+    const up = (e: PointerEvent) => {
+      if (e.pointerId === movePointer) {
+        movePointer = -1;
+        this.mouseDown = false;
+      }
       if (e.button === 2) this.rightDown = false;
-    });
+    };
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
     target.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
@@ -108,6 +127,8 @@ class Input {
   endFrame() {
     this.pressed.clear();
     this.rightPressed = false;
+    this.touchDash = false;
+    this.touchSpecial = false;
     this.navQueue.length = 0;
   }
 
@@ -148,10 +169,10 @@ class Input {
   }
 
   dashPressed() {
-    return this.keyPressed('Space') || this.keyPressed('ShiftLeft') || this.keyPressed('ShiftRight') || this.padPressed(0) || this.padPressed(5) || this.padPressed(7);
+    return this.touchDash || this.keyPressed('Space') || this.keyPressed('ShiftLeft') || this.keyPressed('ShiftRight') || this.padPressed(0) || this.padPressed(5) || this.padPressed(7);
   }
   specialPressed() {
-    return this.keyPressed('KeyE') || this.keyPressed('KeyQ') || this.rightPressed || this.padPressed(2) || this.padPressed(3) || this.padPressed(4) || this.padPressed(6);
+    return this.touchSpecial || this.keyPressed('KeyE') || this.keyPressed('KeyQ') || this.rightPressed || this.padPressed(2) || this.padPressed(3) || this.padPressed(4) || this.padPressed(6);
   }
   pausePressed() {
     return this.keyPressed('Escape') || this.keyPressed('KeyP') || this.padPressed(9) || this.padPressed(8);

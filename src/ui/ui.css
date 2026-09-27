@@ -223,3 +223,15 @@ p { margin: 0; }
   .card { width: min(86vw, 320px); min-height: 0; }
   .cards { flex-direction: column; align-items: center; }
 }
+
+/* touch controls (shown after the first touch during a run) */
+#touch { position: absolute; inset: auto 0 0 0; display: none; pointer-events: none; }
+#touch.on { display: block; }
+#touch button {
+  position: absolute; pointer-events: auto; border: none; border-radius: 50%;
+  font-family: var(--font); font-weight: 700; color: #fff; background: rgba(30, 26, 44, 0.75);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.25); touch-action: none;
+}
+#t-dash { right: calc(20px + env(safe-area-inset-right, 0px)); bottom: calc(24px + env(safe-area-inset-bottom, 0px)); width: 78px; height: 78px; font-size: 30px; }
+#t-special { right: calc(110px + env(safe-area-inset-right, 0px)); bottom: calc(40px + env(safe-area-inset-bottom, 0px)); width: 62px; height: 62px; font-size: 24px; color: #ff5d8f; }
+#t-pause { right: calc(20px + env(safe-area-inset-right, 0px)); bottom: calc(120px + env(safe-area-inset-bottom, 0px)); width: 44px; height: 44px; font-size: 14px; }

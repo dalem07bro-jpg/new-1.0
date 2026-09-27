@@ -10,6 +10,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "build:single": "vite build --mode single",
+    "build:demo": "VITE_DEMO=1 vite build --outDir dist-demo",
     "preview": "vite preview",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",

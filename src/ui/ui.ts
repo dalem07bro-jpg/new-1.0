@@ -565,15 +565,15 @@ export class UI {
   }
 
   // ------------------------------------------------------------------ results
-  results(run: Run, sum: RunSummary, onRetry: () => void) {
+  results(run: Run, sum: RunSummary, onRetry: () => void, demo = false) {
     const st = run.stats;
     const unlocks: string[] = [];
     if (sum.endlessUnlocked) unlocks.push(t('ENDLESS_UNLOCKED'));
     if (sum.varnishUnlocked !== null) unlocks.push(t('VARNISH_UNLOCKED', { v: sum.varnishUnlocked }));
     for (const c of sum.unlockedChars) unlocks.push(t('CHAR_UNLOCKED', { c: CHARS.find((x) => x.id === c)!.name }));
     const html = `
-      <div class="result-title" style="color:${sum.victory ? '#ffd166' : '#adb5bd'};font-weight:700">${sum.victory ? t('VICTORY') : t('DEFEAT')}</div>
-      <p class="sub">${sum.victory ? t('VICTORY_SUB') : t('DEFEAT_SUB')}</p>
+      <div class="result-title" style="color:${sum.victory ? '#ffd166' : '#adb5bd'};font-weight:700">${demo && sum.victory ? t('DEMO_END') : sum.victory ? t('VICTORY') : t('DEFEAT')}</div>
+      <p class="sub">${demo && sum.victory ? t('DEMO_CTA') : sum.victory ? t('VICTORY_SUB') : t('DEFEAT_SUB')}</p>
       <div class="spacer"></div>
       <div class="panel"><div class="stats-table">
         <div>${t('TIME')}</div><div>${fmtTime(st.time)}</div>
@@ -837,9 +837,12 @@ export class UI {
       <p class="hint">${t('CONTROLS')}: ${t('CONTROLS_TEXT')}</p>
       <div class="spacer"></div>
       <button class="btn f small" data-back>${t('BACK')}</button>`;
+    const langBefore = s.lang;
     const close = () => {
       this.app.persist();
       this.pop();
+      // re-render the title in the new language (in-run menus refresh on their next open)
+      if (s.lang !== langBefore && this.stack.length === 1 && !this.stack[0].modal) this.title();
     };
     const el = this.push(render(), { cls: 'solid', modal: true, onBack: close });
     const bind = (focusKey?: string) => {

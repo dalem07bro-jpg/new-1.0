@@ -174,4 +174,5 @@ export const STR = {
   TUT_2: { en: 'Enemies inside a loop are captured. Enemies touching your line light a spark!', de: 'Gegner in einer Schleife werden gefangen. Berühren sie deine Linie, zünden sie einen Funken!' },
   GOAL_HINT: { en: 'Paint {p}% of the map to summon the boss.', de: 'Bemale {p} % der Karte, um den Boss zu rufen.' },
   DEMO_END: { en: 'Thanks for playing the demo!', de: 'Danke fürs Spielen der Demo!' },
+  DEMO_CTA: { en: 'Four more biomes, four more bosses and three more painters await. Wishlist HUE & CLAIM on Steam!', de: 'Vier weitere Biome, vier Bosse und drei weitere Figuren warten. Setz HUE & CLAIM auf deine Steam-Wunschliste!' },
 } as const;

@@ -34,7 +34,7 @@ const DEBUG = {
   goal: Number(params.get('goal') ?? 0),
   biome: params.get('biome'),
   fast: Math.max(1, Number(params.get('fast') ?? 1)),
-  demo: params.has('demo') || (import.meta as any).env?.VITE_DEMO === '1',
+  demo: params.has('demo') || import.meta.env.VITE_DEMO === '1',
 };
 
 class Main implements App {
@@ -59,6 +59,7 @@ class Main implements App {
     this.renderer = new Renderer(canvas);
     this.ui = new UI(document.getElementById('ui')!, this);
     input.attach(document.getElementById('app')!);
+    this.buildTouchButtons();
     const unlockAudio = () => {
       audio.init();
       this.applySettings();
@@ -75,6 +76,24 @@ class Main implements App {
       this.startRun('journey', DEBUG.char ?? 'pip', DEBUG.varnish);
     } else this.toTitle();
     requestAnimationFrame((t0) => this.frame(t0));
+  }
+
+  private touchEl: HTMLElement | null = null;
+  private buildTouchButtons() {
+    const el = document.createElement('div');
+    el.id = 'touch';
+    el.innerHTML = `<button id="t-pause" aria-label="Pause">II</button><button id="t-special" aria-label="Special">★</button><button id="t-dash" aria-label="Dash">»</button>`;
+    document.getElementById('app')!.appendChild(el);
+    const bind = (id: string, fn: () => void) =>
+      el.querySelector('#' + id)!.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        fn();
+      });
+    bind('t-dash', () => (input.touchDash = true));
+    bind('t-special', () => (input.touchSpecial = true));
+    bind('t-pause', () => this.pause());
+    this.touchEl = el;
   }
 
   // ------------------------------------------------------------------ App API
@@ -299,7 +318,7 @@ class Main implements App {
       this.modalDone();
       return;
     }
-    this.ui.results(run, sum, () => this.startRun(mode, mode === 'daily' ? this.dailyChar() : char, varnish));
+    this.ui.results(run, sum, () => this.startRun(mode, mode === 'daily' ? this.dailyChar() : char, varnish), DEBUG.demo);
     this.modalDone();
   }
 
@@ -347,6 +366,7 @@ class Main implements App {
       }
       this.renderer.render(g, blocked ? 0 : dt);
     }
+    if (this.touchEl) this.touchEl.classList.toggle('on', input.touch && !!this.game && !this.ui.blocking && !this.paused);
     input.endFrame();
   }
 }

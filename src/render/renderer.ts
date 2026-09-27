@@ -239,10 +239,10 @@ export class Renderer {
 
     // rain markers
     for (const d of g.drops) {
-      ctx.strokeStyle = rgba('#4cc9f0', 0.6);
-      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = rgba('#4cc9f0', 0.35);
+      ctx.lineWidth = 1.2;
       ctx.beginPath();
-      ctx.arc(d.x, d.y, d.r * (0.4 + 0.6 * clamp(1 - d.t / 0.5, 0, 1)), 0, TAU);
+      ctx.arc(d.x, d.y, Math.max(2, d.r * clamp(d.t / 0.6, 0.15, 1)), 0, TAU);
       ctx.stroke();
     }
 

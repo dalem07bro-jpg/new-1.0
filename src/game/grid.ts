@@ -211,6 +211,9 @@ export class Grid {
     }
 
     for (const c of toClaim) this.setOwned(c, true);
+    // tidy 1-cell-wide slivers left between territory walls (visual cracks)
+    const slivers = this.fillSlivers([...trail, ...toClaim]);
+    for (const c of slivers) toClaim.push(c);
     res.enclosedCount = toClaim.length;
 
     // Multi-source BFS from the trail over the newly owned set → reveal-wave ordering.
@@ -251,6 +254,37 @@ export class Grid {
       }
     }
     return res;
+  }
+
+  private isSliver(c: number) {
+    if (this.owned[c] || this.terrain[c] === Terrain.Rock || this.trailIdx[c] >= 0) return false;
+    const x = c % this.w, y = (c / this.w) | 0;
+    const L = x > 0 && this.owned[c - 1] === 1, R = x < this.w - 1 && this.owned[c + 1] === 1;
+    const U = y > 0 && this.owned[c - this.w] === 1, D = y < this.h - 1 && this.owned[c + this.w] === 1;
+    return (L && R) || (U && D);
+  }
+
+  /** Claim cells squeezed between owned cells on opposite sides, spreading along the channel. */
+  fillSlivers(seeds: number[]): number[] {
+    const out: number[] = [];
+    const stack: number[] = [];
+    const push = (c: number) => {
+      const x = c % this.w, y = (c / this.w) | 0;
+      if (x > 0) stack.push(c - 1);
+      if (x < this.w - 1) stack.push(c + 1);
+      if (y > 0) stack.push(c - this.w);
+      if (y < this.h - 1) stack.push(c + this.w);
+    };
+    for (const s of seeds) push(s);
+    let guard = 0;
+    while (stack.length && guard++ < 20000) {
+      const c = stack.pop()!;
+      if (!this.isSliver(c)) continue;
+      this.setOwned(c, true);
+      out.push(c);
+      push(c);
+    }
+    return out;
   }
 
   /** Is cell i on the edge of the territory (owned with at least one unowned 4-neighbour)? */

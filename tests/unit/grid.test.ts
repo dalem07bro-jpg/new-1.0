@@ -90,4 +90,17 @@ describe('Grid claiming', () => {
     expect(i).toBeGreaterThanOrEqual(0);
     expect(g.owned[i]).toBe(1);
   });
+
+  it('fills 1-cell slivers between territory walls', () => {
+    const g = new Grid(40, 30);
+    // two owned columns with a one-cell gap at x=11, open at the top
+    for (let y = 5; y < 25; y++) {
+      g.setOwned(g.idx(10, y), true);
+      g.setOwned(g.idx(12, y), true);
+    }
+    const filled = g.fillSlivers([g.idx(10, 10)]);
+    expect(filled.length).toBeGreaterThanOrEqual(18);
+    expect(g.owned[g.idx(11, 15)]).toBe(1);
+    expect(g.owned[g.idx(20, 15)]).toBe(0);
+  });
 });

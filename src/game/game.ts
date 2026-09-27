@@ -277,7 +277,10 @@ export class Game {
   damageEnemy(e: Enemy, amount: number, kx = 0, ky = 0, color = '#fff', canCrit = true): number {
     if (e.dead || e.hidden || e.spawnT > 0.25) return 0;
     if (e.def.immune) {
-      if (e.flash <= 0) this.texts.add(e.x, e.y - e.r, '∅', '#e0aaff', 12, 0.4);
+      if (e.flash <= 0 && this.realTime - this.immuneTextT > 0.25) {
+        this.immuneTextT = this.realTime;
+        this.texts.add(e.x, e.y - e.r, '∅', '#e0aaff', 12, 0.4);
+      }
       e.flash = 0.05;
       return 0;
     }
@@ -332,9 +335,11 @@ export class Game {
         c.state = 1;
       }
     }
-    this.parts.burst(e.x, e.y, captured ? 14 : 9, col, captured ? 170 : 130, 0.5, captured ? 4 : 3, captured ? 2 : 0);
+    this.parts.burst(e.x, e.y, captured ? 12 : 9, col, captured ? 190 : 130, captured ? 0.7 : 0.5, captured ? 5 : 3, captured ? 2 : 0);
     if (captured) {
-      this.parts.burst(e.x, e.y, 5, '#ffffff', 90, 0.4, 2, 3);
+      this.parts.burst(e.x, e.y, 6, this.rng.pick(this.biome.pal.decor), 150, 0.7, 4, 2);
+      this.parts.burst(e.x, e.y, 4, '#ffffff', 90, 0.45, 3, 3);
+      this.shocks.push({ x: e.x, y: e.y, r: e.r * 0.5, maxR: e.r * 2.6, life: 0.3, maxLife: 0.3, color: '#ffffff', width: 3 });
       audio.capture();
       if (run.has('lacquer')) {
         this.lacquerAcc = (this.lacquerAcc ?? 0) + 1;
@@ -345,6 +350,7 @@ export class Game {
     run.stats.score += captured ? 12 : 5;
   }
   private lacquerAcc = 0;
+  private immuneTextT = 0;
 
   fireBolt(x: number, y: number, dmg: number, color: string, split = false) {
     const t = this.nearestEnemy(x, y, 420);
@@ -363,7 +369,7 @@ export class Game {
     if (this.invuln > 0 || this.dashT > 0 || this.over || this.stageCleared) return;
     const dmg = amount * (1 - this.run.s.armor);
     this.hp -= dmg;
-    this.invuln = 0.55;
+    this.invuln = 0.7;
     this.hurtFlash = 0.25;
     audio.hurt();
     this.shakeIt(5);
@@ -671,7 +677,7 @@ export class Game {
     if (cells.length === 0) return;
     const run = this.run;
     const maxDist = dist.reduce((m, d) => (d > m ? d : m), 0);
-    const speed = Math.max(55, maxDist / 0.75);
+    const speed = Math.max(30, maxDist / 1.05); // cells/s — slow enough that captures cascade visibly
     const id = ++this.claimId;
     for (let k = 0; k < cells.length; k++) {
       const c = cells[k];
@@ -815,7 +821,8 @@ export class Game {
       this.clearFuse();
       return;
     }
-    const speed = 19.5 * this.run.s.fuseMult; // cells / second
+    // cells / second — ramps from forgiving to fierce over the first minutes and stages
+    const speed = (16.5 + Math.min(3, this.time / 60) + (this.run.stageIdx % 5) * 0.6) * this.run.s.fuseMult;
     this.fuse += speed * dt;
     audio.fuseUpdate(clamp(1 - (len - this.fuse) / 30, 0, 1));
     // sparks at the fuse head
@@ -845,7 +852,7 @@ export class Game {
     audio.snap();
     this.shakeIt(12);
     const ember = run.has('emberquill');
-    const dmg = run.s.maxHp * 0.2 * (ember ? 0.5 : 1);
+    const dmg = run.s.maxHp * 0.16 * (ember ? 0.5 : 1);
     this.invuln = 0;
     this.texts.add(this.px, this.py - 30, this.lang('SNAP'), '#ff4d6d', 24, 1, -20);
     this.damagePlayer(dmg, this.px + Math.cos(this.facing), this.py + Math.sin(this.facing));
@@ -866,7 +873,7 @@ export class Game {
     for (const e of this.enemies) if (!e.boss && e.def.ai !== 'nest' && e.def.ai !== 'turret') count++;
     const spawnMul = (run.varnish >= 4 ? 1.25 : 1) * (1 + 0.5 * run.cycle) * (this.tutorial ? 0.75 : 1) * (this.anomaly?.id === 'swarm' ? 1.5 : 1);
     const cap = 230 + 60 * run.cycle;
-    const target = Math.min(cap, (22 + 16 * tmin + 8 * s) * spawnMul * (this.boss ? 0.6 : 1));
+    const target = Math.min(cap, (18 + 15 * tmin + 8 * s) * spawnMul * (this.boss ? 0.6 : 1));
     this.spawnAcc += dt * (1.5 + target / 6) * (count < target * 0.5 ? 2 : 1);
     while (this.spawnAcc >= 1) {
       this.spawnAcc -= 1;
@@ -906,7 +913,7 @@ export class Game {
       if (c < 0 || this.grid.terrain[c] === Terrain.Rock) continue;
       if (this.grid.owned[c] && tries < 10) continue;
       const lead = this.spawnEnemy(def, x, y, this.rng.chance(eliteChance));
-      const hunter = def.herd && this.rng.chance(Math.min(0.75, 0.35 + tmin * 0.08));
+      const hunter = def.herd && this.rng.chance(Math.min(0.7, 0.15 + tmin * 0.1));
       if (hunter) lead.state = 1;
       if (def.herd && !hunter) {
         // herds: a few more of the same kind grazing together
@@ -1042,8 +1049,8 @@ export class Game {
       this.stormMarks = this.stormMarks.filter((m) => m.t > 0);
     }
     // Hollow (and Varnish 10): land slowly fades at the edges
-    const fadeRate = (this.biome.id === 'hollow' ? 2.5 + this.time / 60 : 0) + (this.run.varnish >= 10 ? 2 : 0);
-    if (fadeRate > 0 && g.ownedCount > 120) {
+    const fadeRate = ((this.biome.id === 'hollow' ? 1.5 + this.time / 100 : 0) + (this.run.varnish >= 10 ? 1.5 : 0)) * Math.min(1, g.ownedCount / 2000);
+    if (fadeRate > 0 && g.ownedCount > 200) {
       this.fadeAcc += dt * fadeRate;
       while (this.fadeAcc >= 1) {
         this.fadeAcc -= 1;

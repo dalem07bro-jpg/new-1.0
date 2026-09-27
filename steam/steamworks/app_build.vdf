@@ -1,0 +1,14 @@
+"AppBuild"
+{
+	"AppID" "0000000"            // TODO: your Steamworks App ID
+	"Desc" "HUE & CLAIM build"
+	"ContentRoot" "../../release/"
+	"BuildOutput" "../../release/steam-output/"
+	"Preview" "0"
+	"SetLive" ""                 // e.g. "beta" once testing is done
+	"Depots"
+	{
+		"0000001" "depot_windows.vdf"
+		"0000002" "depot_linux.vdf"
+	}
+}
