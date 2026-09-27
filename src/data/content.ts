@@ -331,6 +331,22 @@ export const ATELIER: AtelierDef[] = [
   { id: 'revive', icon: 'sun', max: 1, per: 1, fmt: 'int', base: { amber: 8, ochre: 60 }, growth: 1, name: { en: 'Second Coat', de: 'Zweiter Anstrich' }, desc: { en: 'Revive once per run.', de: 'Einmal pro Lauf wiederbeleben.' } },
 ];
 
+// ------------------------------------------------------------------ Anomalies (per-stage twists)
+export interface AnomalyDef {
+  id: string;
+  name: L;
+  desc: L;
+  color: string;
+}
+export const ANOMALIES: AnomalyDef[] = [
+  { id: 'swarm', color: '#adb5bd', name: { en: 'Swarm', de: 'Schwarm' }, desc: { en: '+50% enemies, +30% experience.', de: '+50 % Gegner, +30 % Erfahrung.' } },
+  { id: 'golden', color: '#ffd166', name: { en: 'Golden Hour', de: 'Goldene Stunde' }, desc: { en: 'Double pigment, but elites are twice as common.', de: 'Doppeltes Pigment, aber doppelt so viele Elite-Gegner.' } },
+  { id: 'treasure', color: '#f4a261', name: { en: 'Buried Treasure', de: 'Vergrabener Schatz' }, desc: { en: 'Extra chests and pigment caches lie in the grey.', de: 'Zusätzliche Truhen und Pigmentschätze liegen im Grau.' } },
+  { id: 'storm', color: '#4cc9f0', name: { en: 'Ink Storm', de: 'Tintensturm' }, desc: { en: 'Lightning sparks your trail. Painted land gives +50% XP.', de: 'Blitze entzünden deine Spur. Bemaltes Land gibt +50 % EP.' } },
+  { id: 'bloom', color: '#ff8fab', name: { en: 'Bloom', de: 'Blütezeit' }, desc: { en: 'Every loop heals you a little.', de: 'Jede Schleife heilt dich ein wenig.' } },
+  { id: 'giants', color: '#b5179e', name: { en: 'Giants', de: 'Riesen' }, desc: { en: 'Enemies are bigger and tougher, but drop double XP.', de: 'Gegner sind größer und zäher, lassen aber doppelte EP fallen.' } },
+];
+
 // ------------------------------------------------------------------ Varnish (difficulty ladder)
 export const VARNISH: L[] = [
   { en: 'Standard canvas.', de: 'Standard-Leinwand.' },

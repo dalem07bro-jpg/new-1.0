@@ -1071,7 +1071,7 @@ export class Renderer {
     ctx.font = `600 ${13 * s}px ${FONT}`;
     ctx.fillStyle = 'rgba(255,255,255,0.85)';
     const stageLabel = run.mode === 'endless' ? `${t('CYCLE')} ${run.cycle + 1} · ${run.stageIdx + 1}/5` : `${t('STAGE')} ${run.stageIdx + 1}/5`;
-    ctx.fillText(`${tr(g.biome.name)} · ${stageLabel} · ${fmtTime(g.time)}`, this.W / 2, pad + 4 * s);
+    ctx.fillText(`${tr(g.biome.name)} · ${stageLabel} · ${fmtTime(g.time)}${g.anomaly ? ' · ⚠ ' + tr(g.anomaly.name) : ''}`, this.W / 2, pad + 4 * s);
     this.bar(tx, ty, tw, th, clamp(pct, 0, 1), g.biome.pal.land[0], 'rgba(255,255,255,0.08)', g.biome.pal.edge, this.pctPulse);
     const gx = tx + tw * g.goal;
     ctx.fillStyle = '#ffffff';

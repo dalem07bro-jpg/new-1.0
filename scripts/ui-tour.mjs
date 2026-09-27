@@ -1,0 +1,73 @@
+// Clicks through the menus and captures screenshots of every screen.
+import { chromium } from '@playwright/test';
+const out = process.argv[2] ?? 'ui';
+const lang = process.argv[3] ?? 'en-US';
+const base = process.env.BASE ?? 'http://localhost:5173/';
+const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' });
+const ctx = await browser.newContext({ viewport: { width: 1600, height: 900 }, locale: lang });
+const page = await ctx.newPage();
+const errors = [];
+page.on('pageerror', (e) => errors.push('[pageerror] ' + e.message));
+page.on('console', (m) => { if (m.type() === 'error') errors.push('[console] ' + m.text()); });
+await page.goto(base);
+await page.waitForTimeout(2500);
+await page.screenshot({ path: `${out}_title.png` });
+await page.click('[data-a="play"]');
+await page.waitForTimeout(400);
+await page.screenshot({ path: `${out}_mode.png` });
+await page.click('[data-m="journey"]');
+await page.waitForTimeout(400);
+await page.screenshot({ path: `${out}_chars.png` });
+await page.click('[data-start]');
+// play a bit with keyboard: move right and back to trigger things
+await page.keyboard.down('KeyD'); await page.waitForTimeout(1200); await page.keyboard.up('KeyD');
+await page.keyboard.down('KeyS'); await page.waitForTimeout(900); await page.keyboard.up('KeyS');
+await page.keyboard.down('KeyA'); await page.waitForTimeout(1300); await page.keyboard.up('KeyA');
+await page.keyboard.down('KeyW'); await page.waitForTimeout(1000); await page.keyboard.up('KeyW');
+await page.waitForTimeout(500);
+await page.screenshot({ path: `${out}_game.png` });
+// force a level-up
+await page.evaluate(() => { const m = window.__hue; m.run.xp += m.run.xpNeed() + 0.5; });
+await page.waitForTimeout(900);
+await page.screenshot({ path: `${out}_levelup.png` });
+await page.keyboard.press('Digit1');
+await page.waitForTimeout(600);
+// close remaining level-ups by clicking first card
+for (let i = 0; i < 12; i++) {
+  const c = await page.$('.card[data-i="0"]');
+  if (!c) break;
+  await page.waitForTimeout(420);
+  await c.click();
+  await page.waitForTimeout(150);
+}
+await page.keyboard.press('Escape');
+await page.waitForTimeout(500);
+await page.screenshot({ path: `${out}_pause.png` });
+await page.click('[data-a="abandon"]');
+await page.waitForTimeout(300);
+await page.click('[data-yes]');
+await page.waitForTimeout(800);
+await page.screenshot({ path: `${out}_results.png` });
+await page.click('[data-a="atelier"]');
+await page.waitForTimeout(500);
+await page.screenshot({ path: `${out}_atelier.png` });
+await page.keyboard.press('KeyE'); await page.keyboard.press('KeyE'); await page.keyboard.press('KeyE');
+await page.waitForTimeout(400);
+await page.screenshot({ path: `${out}_mixing.png` });
+await page.keyboard.press('Escape');
+await page.waitForTimeout(400);
+await page.click('[data-a="atlas"]');
+await page.waitForTimeout(400);
+await page.screenshot({ path: `${out}_atlas.png` });
+await page.keyboard.press('Escape');
+await page.waitForTimeout(400);
+await page.click('[data-a="codex"]');
+await page.waitForTimeout(400);
+await page.screenshot({ path: `${out}_codex.png` });
+await page.keyboard.press('Escape');
+await page.waitForTimeout(400);
+await page.click('[data-a="settings"]');
+await page.waitForTimeout(400);
+await page.screenshot({ path: `${out}_settings.png` });
+console.log(errors.join('\n') || 'no errors');
+await browser.close();

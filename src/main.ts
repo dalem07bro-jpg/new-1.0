@@ -1,7 +1,7 @@
 // HUE & CLAIM — application entry: main loop, state machine, run orchestration.
-import '@fontsource/fredoka/400.css';
-import '@fontsource/fredoka/600.css';
-import '@fontsource/fredoka/700.css';
+import '@fontsource/fredoka/latin-400.css';
+import '@fontsource/fredoka/latin-600.css';
+import '@fontsource/fredoka/latin-700.css';
 import './ui/ui.css';
 import { audio } from './core/audio';
 import { detectLang, setLang, t, tr } from './core/i18n';
@@ -189,6 +189,8 @@ class Main implements App {
     const goalPct = Math.round(g.goal * 100);
     this.renderer.announce(tr(g.biome.name), tr(g.biome.mechanic), g.biome.pal.edge);
     setTimeout(() => this.game === g && this.renderer.announce(t('GOAL_HINT', { p: goalPct }), '', '#ffffff'), 1600);
+    const an = g.anomaly;
+    if (an) setTimeout(() => this.game === g && this.renderer.announce('⚠ ' + tr(an.name), tr(an.desc), an.color), 3400);
   }
 
   // ------------------------------------------------------------------ modals

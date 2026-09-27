@@ -3,7 +3,7 @@ import { audio } from '../core/audio';
 import { input } from '../core/input';
 import { clamp, dist2, TAU } from '../core/math';
 import { Rng } from '../core/rng';
-import { ENEMY, type BiomeDef, type EnemyDef } from '../data/content';
+import { ANOMALIES, ENEMY, type AnomalyDef, type BiomeDef, type EnemyDef } from '../data/content';
 import { updateEnemy } from './ai';
 import { Particles, Texts } from './fx';
 import { CELL, Grid, Terrain, type ClaimResult } from './grid';
@@ -120,6 +120,9 @@ export class Game {
   bossBar = 0;
   tutorial = false;
   tutorialStep = 0;
+  anomaly: AnomalyDef | null = null;
+  private stormT = 6;
+  stormMarks: { x: number; y: number; t: number }[] = [];
 
   constructor(run: Run, hooks: GameHooks, tutorial = false) {
     this.run = run;
@@ -135,6 +138,15 @@ export class Game {
     const layout = generateStage(this.grid, this.biome, this.rng, run.stageIdx % 5);
     this.features = layout.features;
     this.fissures = layout.fissures;
+    if (!tutorial && (run.stageIdx >= 1 || run.cycle > 0) && this.rng.chance(run.mode === 'endless' ? 0.85 : 0.6)) {
+      this.anomaly = this.rng.pick(ANOMALIES);
+    }
+    if (this.anomaly?.id === 'treasure') {
+      const extra = generateStage(new Grid(this.biome.w, this.biome.h), this.biome, this.rng, run.stageIdx % 5).features;
+      for (const f of extra) {
+        if ((f.kind === 'chest' || f.kind === 'cache') && this.grid.terrain[f.cell] !== Terrain.Rock && !this.features.some((o) => o.cell === f.cell)) this.features.push(f);
+      }
+    }
     this.px = layout.spawnX * CELL + CELL / 2;
     this.py = layout.spawnY * CELL + CELL / 2;
     const start = this.grid.claimDisc(layout.spawnX + 0.5, layout.spawnY + 0.5, 6.5);
@@ -149,6 +161,10 @@ export class Game {
     this.guardLeft = run.s.guard;
     this.camX = this.px;
     this.camY = this.py;
+  }
+
+  get pigAnomaly() {
+    return this.anomaly?.id === 'golden' ? 2 : 1;
   }
 
   get W() {
@@ -178,9 +194,11 @@ export class Game {
     const isBoss = def.ai === 'boss';
     let hp = isBoss ? (def.bossHp ?? 1000) * run.bossHpMult : def.hp * run.hpMult * (1 + tmin * 0.13);
     if (elite) hp *= 3.2;
+    const giant = this.anomaly?.id === 'giants' && !isBoss && def.ai !== 'nest' && def.ai !== 'turret';
+    if (giant) hp *= 1.6;
     const speedMul = (run.varnish >= 7 ? 1.12 : 1) * (1 + 0.04 * (run.stageIdx % 5));
     const e: Enemy = {
-      uid: this.uidSeq++, def, x, y, vx: 0, vy: 0, r: def.r * (elite ? 1.35 : 1), hp, maxHp: hp,
+      uid: this.uidSeq++, def, x, y, vx: 0, vy: 0, r: def.r * (elite ? 1.35 : 1) * (giant ? 1.3 : 1), hp, maxHp: hp,
       speed: def.speed * speedMul * (elite ? 0.92 : 1) * this.rng.range(0.92, 1.08), dmg: def.dmg * run.dmgMult * (elite ? 1.4 : 1),
       elite, boss: isBoss, dead: false, state: 0, t: this.rng.range(0, 1), t2: 0, t3: 0, dirX: 0, dirY: 0, flash: 0,
       freeze: 0, slow: 0, spawnT: isBoss ? 1.2 : 0.35, captureAt: -1, trailCd: 0, orbCd: 0, thornCd: 0, golemCd: 0, auraCd: 0,
@@ -294,7 +312,7 @@ export class Game {
     }
     run.stats[captured ? 'captures' : 'kills']++;
     run.save.stats[captured ? 'captures' : 'kills']++;
-    const xp = e.def.xp * (e.elite ? 5 : 1) * (captured ? 1.5 * run.s.captureXp : 1);
+    const xp = e.def.xp * (e.elite ? 5 : 1) * (captured ? 1.5 * run.s.captureXp : 1) * (this.anomaly?.id === 'giants' ? 2 : this.anomaly?.id === 'swarm' ? 1.3 : 1);
     this.dropPickup(e.x, e.y, 'xp', xp, captured);
     const pigChance = captured ? 0.32 : 0.2;
     if (this.rng.chance(pigChance) || e.elite) this.dropPickup(e.x, e.y, 'crimson', e.elite ? 4 : 1, captured);
@@ -692,8 +710,9 @@ export class Game {
     run.stats.cells += total;
     run.save.stats.cells += total;
     run.stats.score += total;
-    run.xp += total * 0.06 * run.s.xpMult * opus;
-    const az = (total / 70) * run.s.pigMult * opus;
+    run.xp += total * 0.06 * run.s.xpMult * opus * (this.anomaly?.id === 'storm' ? 1.5 : 1);
+    if (this.anomaly?.id === 'bloom' && trailCount > 0) this.heal(Math.min(12, 2 + total / 80));
+    const az = (total / 70) * run.s.pigMult * opus * this.pigAnomaly;
     run.pig.azure += az;
     if (trailCount > 0) {
       run.stats.loops++;
@@ -844,7 +863,7 @@ export class Game {
     const s = run.stageIdx % 5;
     let count = 0;
     for (const e of this.enemies) if (!e.boss && e.def.ai !== 'nest' && e.def.ai !== 'turret') count++;
-    const spawnMul = (run.varnish >= 4 ? 1.25 : 1) * (1 + 0.5 * run.cycle) * (this.tutorial ? 0.5 : 1);
+    const spawnMul = (run.varnish >= 4 ? 1.25 : 1) * (1 + 0.5 * run.cycle) * (this.tutorial ? 0.5 : 1) * (this.anomaly?.id === 'swarm' ? 1.5 : 1);
     const cap = 230 + 60 * run.cycle;
     const target = Math.min(cap, (16 + 12 * tmin + 6 * s) * spawnMul * (this.boss ? 0.6 : 1));
     this.spawnAcc += dt * (0.8 + target / 12);
@@ -875,7 +894,7 @@ export class Game {
     const pool = this.biome.pool.filter((p) => p.from <= tmin);
     const pick = this.rng.weighted(pool, (p) => p.w);
     const def = ENEMY[pick.id];
-    let eliteChance = Math.min(0.14, 0.015 + 0.012 * tmin) * (run.varnish >= 3 ? 2 : 1);
+    let eliteChance = Math.min(0.14, 0.015 + 0.012 * tmin) * (run.varnish >= 3 ? 2 : 1) * (this.anomaly?.id === 'golden' ? 2 : 1);
     if (this.tutorial) eliteChance = 0;
     for (let tries = 0; tries < 14; tries++) {
       const a = this.rng.range(0, TAU);
@@ -976,6 +995,40 @@ export class Game {
         if (Math.abs(this.px - x) < CELL && Math.abs(this.py - y) < CELL) this.damagePlayer(14 * this.run.dmgMult, x, y + 1);
         for (const e of this.query(x, y, 6)) if (!e.boss) this.damageEnemy(e, 45 * dt, 0, 0, '#ff7b3a', false);
       }
+    }
+    // Ink Storm: lightning strikes near the player and sparks the trail
+    if (this.anomaly?.id === 'storm') {
+      this.stormT -= dt;
+      if (this.stormT <= 0) {
+        this.stormT = this.rng.range(4, 7);
+        const tr = g.trail;
+        let x = this.px + this.rng.range(-260, 260), y = this.py + this.rng.range(-200, 200);
+        if (tr.length > 6 && this.rng.chance(0.6)) {
+          const k = this.rng.int(0, tr.length - 4);
+          x = (tr[k] % g.w) * CELL + CELL / 2;
+          y = Math.floor(tr[k] / g.w) * CELL + CELL / 2;
+        }
+        this.drops.push({ x, y, t: 0.9, r: 34, dmg: 40 });
+        this.stormMarks.push({ x, y, t: 0.9 });
+      }
+      for (const m of this.stormMarks) {
+        m.t -= dt;
+        if (m.t <= 0) {
+          const c = this.cellAt(m.x, m.y);
+          for (let dy = -2; dy <= 2; dy++)
+            for (let dx = -2; dx <= 2; dx++) {
+              const cc = c + dy * g.w + dx;
+              if (cc >= 0 && cc < g.size && g.trailIdx[cc] >= 0) {
+                this.ignite(g.trailIdx[cc], m.x, m.y, null);
+                dy = dx = 99;
+              }
+            }
+          if (Math.hypot(this.px - m.x, this.py - m.y) < 34) this.damagePlayer(12 * this.run.dmgMult, m.x, m.y + 1);
+          this.parts.burst(m.x, m.y, 14, '#4cc9f0', 200, 0.4, 3, 1);
+          audio.boom();
+        }
+      }
+      this.stormMarks = this.stormMarks.filter((m) => m.t > 0);
     }
     // Hollow (and Varnish 10): land slowly fades at the edges
     const fadeRate = (this.biome.id === 'hollow' ? 2.5 + this.time / 60 : 0) + (this.run.varnish >= 10 ? 2 : 0);
@@ -1086,7 +1139,14 @@ export class Game {
       p.life -= dt;
       const dx = this.px - p.x, dy = this.py - p.y;
       const d = Math.hypot(dx, dy) || 1;
-      if (!p.pulled && d < pr && p.t > 0.25) p.pulled = true;
+      if (!p.pulled && p.t > 0.25) {
+        if (d < pr) p.pulled = true;
+        else if (d < pr * 2.2) {
+          // pickups resting on your painted land drift to you from further away
+          const c = this.cellAt(p.x, p.y);
+          if (c >= 0 && this.grid.owned[c]) p.pulled = true;
+        }
+      }
       if (p.pulled && p.t > 0.15) {
         const sp = 260 + p.t * 380;
         p.vx += ((dx / d) * sp - p.vx) * Math.min(1, dt * 8);
@@ -1113,13 +1173,13 @@ export class Game {
         audio.pickup();
         break;
       case 'crimson': {
-        const v = p.value * run.s.pigMult;
+        const v = p.value * run.s.pigMult * this.pigAnomaly;
         run.pig.crimson += v;
         audio.pigment();
         break;
       }
       case 'ochre': {
-        const v = p.value * run.s.pigMult;
+        const v = p.value * run.s.pigMult * this.pigAnomaly;
         run.pig.ochre += v;
         run.save.stats.ochreEarned += v;
         audio.pigment();
