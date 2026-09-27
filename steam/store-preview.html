@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<title>HUE &amp; CLAIM Store Page</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Lexend:wght@300;400;500;600&display=swap">
+<style>
+  :root {
+    color-scheme: dark;
+    --ground: #110f17;
+    --canvas: #19161f;
+    --panel: #221d2c;
+    --line: rgba(255, 244, 230, 0.1);
+    --ink: #f6efe4;
+    --muted: #b0a7bf;
+    --pink: #ff5d8f;
+    --butter: #ffd166;
+    --mint: #06d6a0;
+    --sky: #4cc9f0;
+    --violet: #9b5de5;
+    --display: 'Fredoka', 'Trebuchet MS', system-ui, sans-serif;
+    --body: 'Lexend', 'Segoe UI', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font: 300 16px/1.6 var(--body);
+    padding-inline: 16px;
+    padding-block: 0 48px;
+  }
+  /* faint canvas weave, the game's "blank canvas" */
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: -1;
+    background-image: linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+    background-size: 7px 7px;
+  }
+  .wrap { max-width: 1120px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .wrap > * { min-width: 0; }
+  img { height: auto; }
+  a { color: var(--sky); }
+  :focus-visible { outline: 3px solid var(--butter); outline-offset: 3px; border-radius: 6px; }
+
+  header.bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px 0; }
+  .crumb { font: 500 13px/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .logo { font: 700 clamp(34px, 6vw, 58px)/1 var(--display); letter-spacing: .01em; margin: 6px 0 0; text-wrap: balance; }
+  .logo .h { color: var(--pink); } .logo .u { color: var(--butter); } .logo .e { color: var(--mint); }
+  .logo .amp { font-size: .55em; vertical-align: .3em; margin: 0 .1em; }
+  .logo .c { background: linear-gradient(90deg, var(--sky), var(--violet) 45%, var(--pink)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .lang { display: inline-flex; background: var(--panel); border-radius: 999px; padding: 4px; gap: 4px; }
+  .lang button { font: 500 13px/1 var(--body); color: var(--muted); background: transparent; border: 0; border-radius: 999px; padding: 8px 14px; cursor: pointer; }
+  .lang button[aria-pressed="true"] { background: var(--butter); color: #1b1722; }
+
+  /* hero */
+  .hero { display: grid; grid-template-columns: minmax(0, 1.65fr) minmax(0, 1fr); gap: 24px; align-items: start; }
+  .hero figure { margin: 0; }
+  .hero img.cap { width: 100%; border-radius: 14px; display: block; box-shadow: 0 20px 50px rgba(0,0,0,.45); }
+  .side { display: grid; gap: 16px; }
+  .short { font: 400 17px/1.55 var(--body); margin: 0; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+  .chip { font: 500 12px/1 var(--body); padding: 7px 10px; border-radius: 999px; background: var(--panel); color: var(--ink); border: 1px solid var(--line); }
+  .price { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; background: var(--panel); border-radius: 14px; padding: 14px 16px; }
+  .price .amt { font: 700 26px/1 var(--display); font-variant-numeric: tabular-nums; }
+  .price .off { font: 600 13px/1 var(--body); background: var(--mint); color: #062a20; padding: 6px 8px; border-radius: 8px; }
+  .price .note { color: var(--muted); font-size: 13px; }
+  .play {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px; text-decoration: none;
+    font: 600 18px/1 var(--display); color: #fff; padding: 16px 20px; border-radius: 14px;
+    background: linear-gradient(135deg, var(--pink), var(--violet)); box-shadow: 0 10px 26px rgba(255, 93, 143, .25);
+  }
+  .play:hover { filter: brightness(1.08); }
+  .meta { display: grid; grid-template-columns: auto 1fr; gap: 6px 14px; font-size: 14px; margin: 0; }
+  .meta dt { color: var(--muted); }
+  .meta dd { margin: 0; }
+
+  /* media */
+  h2 { font: 700 clamp(22px, 3.2vw, 30px)/1.15 var(--display); margin: 0 0 14px; text-wrap: balance; }
+  h3 { font: 600 19px/1.25 var(--display); margin: 22px 0 8px; color: var(--butter); text-wrap: balance; }
+  .shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .shots button { padding: 0; border: 0; background: none; cursor: zoom-in; border-radius: 10px; overflow: hidden; display: block; }
+  .shots img { width: 100%; height: auto; aspect-ratio: 16/9; object-fit: cover; display: block; transition: transform .2s; }
+  .shots button:hover img { transform: scale(1.03); }
+  .shots figcaption { font-size: 12.5px; color: var(--muted); padding: 6px 2px 0; text-align: left; }
+  .shots figure { margin: 0; }
+
+  /* about */
+  .about { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 36px; align-items: start; }
+  .prose { max-width: 68ch; }
+  .prose p { margin: 0 0 12px; }
+  .prose ul { margin: 0 0 12px; padding-left: 20px; display: grid; gap: 6px; }
+  .prose b { font-weight: 600; color: #fff; }
+  .prose .lead { font-size: 18px; }
+  aside.facts { background: var(--panel); border-radius: 16px; padding: 18px; display: grid; gap: 14px; font-size: 14px; position: sticky; top: calc(16px + env(safe-area-inset-top, 0px)); }
+  aside.facts h4 { font: 600 12px/1 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+  aside.facts ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+  aside.facts li::before { content: "✦ "; color: var(--pink); }
+  .req { font-size: 13px; color: var(--muted); }
+
+  /* assets */
+  .assets { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+  .asset { background: var(--canvas); border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: grid; gap: 8px; align-content: start; }
+  .asset img { width: 100%; border-radius: 6px; display: block; background: repeating-conic-gradient(#2a2533 0 25%, #221e29 0 50%) 0 0 / 16px 16px; }
+  .asset .dim { font: 500 12px/1 var(--body); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .asset .nm { font: 500 14px/1.2 var(--body); }
+  .ach img { width: 100%; border-radius: 10px; display: block; }
+  .ach-wrap { overflow-x: auto; background: var(--canvas); border-radius: 12px; padding: 10px; border: 1px solid var(--line); }
+  .ach-wrap img { max-width: none; width: 1600px; }
+
+  .note { color: var(--muted); font-size: 13px; max-width: 80ch; }
+  footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 18px; }
+
+  /* lightbox */
+  dialog { border: 0; padding: 0; background: transparent; max-width: min(1400px, 96vw); }
+  dialog::backdrop { background: rgba(8, 6, 12, .88); }
+  dialog img { width: 100%; border-radius: 12px; display: block; }
+  dialog form { text-align: right; margin-top: 8px; }
+  dialog button { font: 500 14px/1 var(--body); background: var(--panel); color: var(--ink); border: 1px solid var(--line); border-radius: 999px; padding: 8px 14px; cursor: pointer; }
+
+  @media (max-width: 860px) {
+    .hero, .about { grid-template-columns: minmax(0, 1fr); }
+    aside.facts { position: static; }
+    .shots { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 480px) { .shots { grid-template-columns: minmax(0, 1fr); } }
+  @media (prefers-reduced-motion: reduce) { .shots img { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header class="bar">
+    <div>
+      <div class="crumb" data-i18n="crumb">Steam-Shopseite · Vorschau</div>
+      <h1 class="logo"><span class="h">H</span><span class="u">U</span><span class="e">E</span><span class="amp">&amp;</span><span class="c">CLAIM</span></h1>
+    </div>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="de" aria-pressed="true">Deutsch</button>
+      <button type="button" data-lang="en" aria-pressed="false">English</button>
+    </div>
+  </header>
+
+  <section class="hero" aria-label="Overview">
+    <figure><img class="cap" src="assets/main_capsule.png" alt="HUE & CLAIM key art: Pip draws a pink loop around a crowd of ink blobs on a patchwork of painted land" width="1232" height="706"></figure>
+    <div class="side">
+      <p class="short" data-i18n="short">Zieh die Linie. Erobere die Welt. Ein Territorium-Roguelite: Male Schleifen durch eine entfärbte Welt, fange ganze Horden mit einem einzigen Strich und entkomme den Funken auf deiner Spur. Baue irre Synergien, stürze Bosse und male Chromara neu.</p>
+      <div class="chips" aria-label="Tags">
+        <span class="chip">Roguelite</span><span class="chip">Action Roguelike</span><span class="chip">Bullet Heaven</span><span class="chip">Arcade</span><span class="chip">Casual</span><span class="chip">Strategy</span><span class="chip">Colorful</span><span class="chip">Cute</span><span class="chip">2D</span><span class="chip">Replay Value</span>
+      </div>
+      <div class="price">
+        <span class="amt">9,99 €</span><span class="off">−15 %</span><span class="note" data-i18n="price">Launch-Rabatt · kostenlose Demo</span>
+      </div>
+      <a class="play" href="https://claude.ai/artifact/Vm5pkVZFKtQtTStzWnPzNN" target="_blank" rel="noopener" data-i18n="play">▶ Jetzt im Browser spielen</a>
+      <dl class="meta">
+        <dt data-i18n="k-genre">Genre</dt><dd>Action · Casual · Indie · Strategy</dd>
+        <dt data-i18n="k-plat">Plattformen</dt><dd>Windows · Linux · Steam Deck</dd>
+        <dt data-i18n="k-lang">Sprachen</dt><dd data-i18n="v-lang">Deutsch, Englisch (Chinesisch geplant)</dd>
+        <dt data-i18n="k-feat">Features</dt><dd data-i18n="v-feat">Erfolge · Controller · Steam Cloud · Einzelspieler</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section aria-labelledby="shots-h">
+    <h2 id="shots-h" data-i18n="shots">Screenshots</h2>
+    <div class="shots" id="shots"></div>
+  </section>
+
+  <section class="about" aria-labelledby="about-h">
+    <div class="prose">
+      <h2 id="about-h" data-i18n="about">Über dieses Spiel</h2>
+      <div id="about-de">
+        <h3>Ein Strich. Achtzig Monster. Pure Farbe.</h3>
+        <p class="lead">Das Grau hat Chromara jede Farbe entzogen. Du bist Pip, die letzte Malerin. Verlasse dein Land, zieh eine Linie durchs Grau und kehre heim – alles in deiner Schleife erblüht in Farbe, und jedes Monster darin wird <b>gefangen</b>.</p>
+        <p>Doch das Grau wehrt sich. Sobald ein Gegner deine Linie berührt, zündet ein <b>Funke</b> und rast auf dich zu. Bist du zuerst zu Hause, gehört das Land dir. Holt er dich ein, <b>reißt</b> dein Strich.</p>
+        <h3>In drei Sekunden verstanden – in dreißig Stunden gemeistert</h3>
+        <ul>
+          <li><b>Jeder Strich ist eine Wette:</b> Größere Schleifen bringen mehr Land, mehr Fänge und mehr Beute – aber du bist länger verwundbar.</li>
+          <li><b>Ganze Herden einfangen:</b> Grasende Herden bemerken dich erst nach einem Moment. Kreise sie schnell ein oder locke Jäger in eine Falle.</li>
+          <li><b>Bosse, die man ausmalen muss:</b> Je enger deine Schleife um einen Boss, desto härter trifft sie.</li>
+          <li><b>Fünf Biome mit eigenen Regeln:</b> Moore bremsen, Ruinenmauern zählen als Grenzen, Lavaspalten entzünden deine Spur, in der Leere verblasst dein Land.</li>
+        </ul>
+        <h3>Builds, die die Leinwand sprengen</h3>
+        <ul>
+          <li><b>10 Waffen mit Evolutionen</b> – vom Pinselhieb bis zu Fresko-Golems, die auf deinem bemalten Land leben.</li>
+          <li><b>17 Passive, 22 regelbrechende Relikte</b> – „Stillleben“ friert die Welt ein, „Magnum Opus“ verdoppelt Meisterwerke.</li>
+          <li><b>4 Figuren</b>, deren Spezialfähigkeiten die Kernmechanik verdrehen.</li>
+          <li><b>6 Anomalien</b> wie Schwarm, Tintensturm und Goldene Stunde machen jede Etappe anders.</li>
+        </ul>
+        <h3>Grind, der Möglichkeiten freischaltet</h3>
+        <ul>
+          <li><b>Farbenlehre-Progression:</b> Karmin, Azur und Ocker sammeln – und zu Violett, Grün und Bernstein mischen.</li>
+          <li><b>Der Atlas:</b> 25 Biom-Herausforderungen, jeder Stern gibt dauerhaft +2 % Pigment.</li>
+          <li><b>Firnis 1–10</b>, <b>Unendliche Leinwand</b> und <b>Tägliche Leinwand</b>.</li>
+          <li><b>36 Erfolge</b>, Bestiarium und Kodex.</li>
+        </ul>
+      </div>
+      <div id="about-en" hidden>
+        <h3>One stroke. Eighty monsters. Pure color.</h3>
+        <p class="lead">The world of Chromara has been drained by the Grey. You are Pip, the last painter. Step off your land, draw a line through the Grey and come back home: everything inside your loop bursts into color, and every monster trapped inside gets <b>captured</b>.</p>
+        <p>But the Grey fights back. The moment an enemy touches your line, a <b>spark</b> ignites and races along it toward you. Make it home first and the land is yours. Get caught and your stroke <b>snaps</b>.</p>
+        <h3>Understood in three seconds, mastered in thirty hours</h3>
+        <ul>
+          <li><b>Every stroke is a gamble:</b> bigger loops mean more land, more captures and more loot, and more time exposed.</li>
+          <li><b>Lasso whole herds:</b> grazing herds only notice you after a moment. Circle them fast, or bait hunters into a trap.</li>
+          <li><b>Bosses you have to out-draw:</b> the tighter your loop around a boss, the harder it hits.</li>
+          <li><b>Five biomes that change the rules:</b> bogs slow you, ruin walls count as borders, lava fissures ignite your trail, the Hollow slowly fades your land.</li>
+        </ul>
+        <h3>Builds that break the canvas</h3>
+        <ul>
+          <li><b>10 weapons with evolutions</b>, from Brush Swipes to Fresco Golems that live on your painted land.</li>
+          <li><b>17 passives, 22 rule-bending relics</b>: Still Life freezes the world, Magnum Opus doubles your masterpieces.</li>
+          <li><b>4 painters</b> whose specials twist the core mechanic.</li>
+          <li><b>6 anomalies</b> such as Swarm, Ink Storm and Golden Hour make every stage play differently.</li>
+        </ul>
+        <h3>Grind that unlocks choices, not just numbers</h3>
+        <ul>
+          <li><b>Color-theory progression:</b> collect Crimson, Azure and Ochre, then mix them into Violet, Verdant and Amber.</li>
+          <li><b>The Atlas:</b> 25 biome challenges; every star permanently adds +2 % pigment.</li>
+          <li><b>Varnish 1–10</b>, <b>Infinite Canvas</b> and a <b>Daily Canvas</b>.</li>
+          <li><b>36 achievements</b>, a bestiary and a full codex.</li>
+        </ul>
+      </div>
+    </div>
+    <aside class="facts" aria-label="Facts">
+      <div><h4 data-i18n="f-content">Inhalt</h4>
+        <ul><li data-i18n="c1">5 Biome · 5 Bosse</li><li data-i18n="c2">4 Figuren</li><li data-i18n="c3">10 Waffen + Evolutionen</li><li data-i18n="c4">17 Passive · 22 Relikte</li><li data-i18n="c5">25 Atlas-Sterne · 11 Firnis-Stufen</li><li data-i18n="c6">3 Modi · 36 Erfolge</li></ul></div>
+      <div><h4 data-i18n="f-run">Run-Länge</h4><div data-i18n="v-run">20–30 Minuten · 30–60 h bis 100 %</div></div>
+      <div><h4 data-i18n="f-req">Mindestanforderungen</h4><div class="req">Windows 10 64-Bit / SteamOS / Ubuntu 22.04 · Dual-Core 2 GHz · 4 GB RAM · Intel HD 520 · 300 MB</div></div>
+      <div><h4 data-i18n="f-rating">Einstufung</h4><div data-i18n="v-rating">Leichte Comic-Gewalt (Tintenkleckse platzen zu Konfetti)</div></div>
+    </aside>
+  </section>
+
+  <section aria-labelledby="ach-h">
+    <h2 id="ach-h" data-i18n="ach">36 Steam-Erfolge</h2>
+    <div class="ach-wrap"><img src="achievements/sheet.png" alt="All 36 achievement badges, unlocked row above locked row" width="2304" height="128"></div>
+  </section>
+
+  <section aria-labelledby="assets-h">
+    <h2 id="assets-h" data-i18n="assets">Capsules &amp; Library-Grafiken</h2>
+    <p class="note" data-i18n="assets-note">Alle Grafiken werden aus dem Spielcode gerendert (tools/keyart.html) – in exakt den Größen, die Steamworks verlangt. Keine KI-Bildgeneratoren.</p>
+    <div class="assets">
+      <div class="asset"><img src="assets/header_capsule.png" alt="Header capsule" width="920" height="430"><span class="nm">Header Capsule</span><span class="dim">920 × 430</span></div>
+      <div class="asset"><img src="assets/small_capsule.png" alt="Small capsule" width="462" height="174"><span class="nm">Small Capsule</span><span class="dim">462 × 174 · lesbar bei 120 × 45</span></div>
+      <div class="asset"><img src="assets/main_capsule.png" alt="Main capsule" width="1232" height="706"><span class="nm">Main Capsule</span><span class="dim">1232 × 706</span></div>
+      <div class="asset"><img src="assets/vertical_capsule.png" alt="Vertical capsule" width="748" height="896"><span class="nm">Vertical Capsule</span><span class="dim">748 × 896</span></div>
+      <div class="asset"><img src="assets/library_hero.png" alt="Library hero" width="1920" height="620"><span class="nm">Library Hero</span><span class="dim">3840 × 1240</span></div>
+      <div class="asset"><img src="assets/library_logo.png" alt="Library logo on transparent background" width="1280" height="720"><span class="nm">Library Logo</span><span class="dim">1280 × 720 · transparent</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <p data-i18n="foot">KI-Offenlegung: Grafik, Audio und Texte im Spiel werden prozedural vom Spielcode erzeugt; KI-Unterstützung wurde bei Teilen des Quellcodes und beim Entwurf der Marketingtexte genutzt. Quelle aller Inhalte: Repository-Ordner steam/ und docs/.</p>
+  </footer>
+</div>
+
+<dialog id="lb" aria-label="Screenshot">
+  <img id="lb-img" alt="">
+  <form method="dialog"><button type="submit" data-i18n="close">Schließen</button></form>
+</dialog>
+
+<script>
+  const SHOTS = [
+    ['01_capture', 'Eine Schleife flutet um eine grasende Herde', 'A loop floods around a grazing herd'],
+    ['02_lasso', 'Das Lasso: Linie, Herde, Heimweg', 'The lasso: line, herd, way home'],
+    ['03_boss', 'Der Schmierkönig in einer engen Schleife', 'The Smudge King caught in a tight loop'],
+    ['04_ember_spark', 'Glut-Schlucht: Ein Funke rast die Spur entlang', 'Ember Canyon: a spark races along the trail'],
+    ['05_ruins', 'Kreide-Ruinen mit der Anomalie „Riesen“', 'Chalk Ruins with the Giants anomaly'],
+    ['06_hollow', 'Die Leere im späten Spiel', 'The Hollow, late game'],
+    ['07_marsh', 'Tintenwasser-Moor', 'Inkwater Marsh'],
+    ['08_levelup', 'Build-Entscheidungen mit Evolution', 'Build choices with an evolution'],
+    ['09_title', 'Titelbildschirm mit Live-Demo', 'Title screen with live attract mode'],
+  ];
+  const T = {
+    de: { crumb: 'Steam-Shopseite · Vorschau', short: document.querySelector('[data-i18n="short"]').textContent, price: 'Launch-Rabatt · kostenlose Demo', play: '▶ Jetzt im Browser spielen', 'k-genre': 'Genre', 'k-plat': 'Plattformen', 'k-lang': 'Sprachen', 'v-lang': 'Deutsch, Englisch (Chinesisch geplant)', 'k-feat': 'Features', 'v-feat': 'Erfolge · Controller · Steam Cloud · Einzelspieler', shots: 'Screenshots', about: 'Über dieses Spiel', 'f-content': 'Inhalt', c1: '5 Biome · 5 Bosse', c2: '4 Figuren', c3: '10 Waffen + Evolutionen', c4: '17 Passive · 22 Relikte', c5: '25 Atlas-Sterne · 11 Firnis-Stufen', c6: '3 Modi · 36 Erfolge', 'f-run': 'Run-Länge', 'v-run': '20–30 Minuten · 30–60 h bis 100 %', 'f-req': 'Mindestanforderungen', 'f-rating': 'Einstufung', 'v-rating': 'Leichte Comic-Gewalt (Tintenkleckse platzen zu Konfetti)', ach: '36 Steam-Erfolge', assets: 'Capsules & Library-Grafiken', 'assets-note': 'Alle Grafiken werden aus dem Spielcode gerendert (tools/keyart.html) – in exakt den Größen, die Steamworks verlangt. Keine KI-Bildgeneratoren.', foot: 'KI-Offenlegung: Grafik, Audio und Texte im Spiel werden prozedural vom Spielcode erzeugt; KI-Unterstützung wurde bei Teilen des Quellcodes und beim Entwurf der Marketingtexte genutzt. Quelle aller Inhalte: Repository-Ordner steam/ und docs/.', close: 'Schließen' },
+    en: { crumb: 'Steam store page · preview', short: 'Draw the line. Claim the world. A territory-claiming roguelite: paint loops through a world drained of color, trap entire hordes in a single stroke, and outrun the sparks racing along your trail. Build wild synergies, topple bosses and repaint Chromara.', price: 'Launch discount · free demo', play: '▶ Play in your browser', 'k-genre': 'Genre', 'k-plat': 'Platforms', 'k-lang': 'Languages', 'v-lang': 'English, German (Chinese planned)', 'k-feat': 'Features', 'v-feat': 'Achievements · Controller · Steam Cloud · Single-player', shots: 'Screenshots', about: 'About this game', 'f-content': 'Content', c1: '5 biomes · 5 bosses', c2: '4 painters', c3: '10 weapons + evolutions', c4: '17 passives · 22 relics', c5: '25 Atlas stars · 11 Varnish levels', c6: '3 modes · 36 achievements', 'f-run': 'Run length', 'v-run': '20–30 minutes · 30–60 h to 100 %', 'f-req': 'Minimum requirements', 'f-rating': 'Rating', 'v-rating': 'Mild cartoon violence (ink blobs pop into confetti)', ach: '36 Steam achievements', assets: 'Capsules & library art', 'assets-note': 'Every graphic is rendered from the game code (tools/keyart.html) at the exact sizes Steamworks asks for. No AI image generators.', foot: 'AI disclosure: in-game art, audio and text are generated procedurally by the game code; AI assistance was used for parts of the source code and for drafting marketing copy. Source of all content: the steam/ and docs/ folders of the repository.', close: 'Close' },
+  };
+  const shotsEl = document.getElementById('shots');
+  const lb = document.getElementById('lb');
+  const lbImg = document.getElementById('lb-img');
+  let lang = 'de';
+  function renderShots() {
+    shotsEl.innerHTML = '';
+    for (const [file, de, en] of SHOTS) {
+      const fig = document.createElement('figure');
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const img = document.createElement('img');
+      img.src = 'screenshots/' + file + '.jpg';
+      img.alt = lang === 'de' ? de : en;
+      img.width = 1280; img.height = 720;
+      btn.appendChild(img);
+      btn.addEventListener('click', () => { lbImg.src = img.src; lbImg.alt = img.alt; lb.showModal(); });
+      const cap = document.createElement('figcaption');
+      cap.textContent = lang === 'de' ? de : en;
+      fig.append(btn, cap);
+      shotsEl.appendChild(fig);
+    }
+  }
+  function setLang(l) {
+    lang = l;
+    document.documentElement.lang = l;
+    for (const el of document.querySelectorAll('[data-i18n]')) {
+      const v = T[l][el.dataset.i18n];
+      if (v) el.textContent = v;
+    }
+    document.getElementById('about-de').hidden = l !== 'de';
+    document.getElementById('about-en').hidden = l !== 'en';
+    for (const b of document.querySelectorAll('[data-lang]')) b.setAttribute('aria-pressed', String(b.dataset.lang === l));
+    renderShots();
+    try { localStorage.setItem('hue-store-lang', l); } catch (e) { /* storage unavailable */ }
+  }
+  for (const b of document.querySelectorAll('[data-lang]')) b.addEventListener('click', () => setLang(b.dataset.lang));
+  lb.addEventListener('click', (e) => { if (e.target === lb) lb.close(); });
+  let saved = null;
+  try { saved = localStorage.getItem('hue-store-lang'); } catch (e) { saved = null; }
+  setLang(saved === 'en' ? 'en' : 'de');
+</script>
+</body>
+</html>

@@ -44,13 +44,13 @@ Vollständige Gamepad-Navigation in allen Menüs (Steam-Deck-tauglich).
 - Die Spur darf sich selbst kreuzen: ein „Lasso“ im offenen Grau zählt, sobald du damit nach Hause kommst.
 
 ### 4.2 Fangen (Capture)
-- Die Farbe breitet sich als **Welle** von der Spur aus (BFS-Distanz → Zeit). Eingeschlossene Gegner erstarren, zittern und **platzen**, wenn die Welle sie erreicht (Pentatonik-Pops, steigende Tonhöhe im Combo).
+- Die Farbe breitet sich als **Welle** von der Spur aus (BFS-Distanz → Zeit, ≥ 30 Felder/s, max. ~1 s), 1-Feld-Schlitze zwischen Landstücken werden automatisch mitgefüllt. Eingeschlossene Gegner erstarren, zittern und **platzen**, wenn die Welle sie erreicht (Pentatonik-Pops, steigende Tonhöhe im Combo).
 - Gefangene Gegner geben **1,5× EP** (+Meisterstreich), höhere Pigment-Chance, **Spalter teilen sich nicht**, **Phantome** sind *nur* so zu besiegen.
 - Elite-Gegner verlieren 55 % LP und brechen aus dem Land aus; **Bosse** erleiden Schaden proportional zur *Enge* der Schleife: `30 % · √(110 / Schleifengröße)`, 6–30 % max. LP — enge Schleifen lohnen sich. Danach reißen sie das Land um sich herum wieder auf.
 
 ### 4.3 Funken & Riss (Qix-Zündschnur)
-- Berührt ein Gegner, ein Tintengeschoss, eine Lavaspalte oder ein Blitz die Spur, entzündet sich ein **Funke**, der die Spur entlang **auf dich zu** rast (19,5 Felder/s, schneller als du!).
-- Erreichst du dein Land zuerst: Schleife gilt. Holt er dich ein: **Riss** — Spur weg, 20 % max. LP Schaden.
+- Berührt ein Gegner, ein Tintengeschoss, eine Lavaspalte oder ein Blitz die Spur, entzündet sich ein **Funke**, der die Spur entlang **auf dich zu** rast (16,5 Felder/s, +1 pro Minute bis +3, +0,6 pro Etappe — schneller als du mit 15 Felder/s).
+- Erreichst du dein Land zuerst: Schleife gilt. Holt er dich ein: **Riss** — Spur weg, 16 % max. LP Schaden.
 - Gegenmittel: Nasser Firnis/Spiegel/Dornenspur (ignorieren die ersten N Funken pro Schleife), Schnelltrocknend/Sanduhr (langsamere Funken), Pips *Kühner Strich*, Monas *Heimblitz*.
 - UI: rote Puls-Vignette, Warntext, brennendes Spursegment, Heim-Pfeil blinkt.
 
@@ -166,6 +166,9 @@ Freischaltung durch Sieg auf der höchsten Stufe. Kumulativ: +25 % Gegner-LP · 
 | Modi | Endlos, Daily Seed |
 
 ## 10. Pacing & Grind-Zahlen (Zielwerte)
+
+Automatisierte Balance-Probe (`scripts/balance.mjs`, Autopilot ohne Unverwundbarkeit, Firnis 0): der Bot überlebt Etappe 1 im Schnitt 3,5–5 min und erreicht 30–43 % Land — ein menschlicher Einsteiger (gezieltes Einkreisen, Funken ausweichen) schafft den ersten Boss erwartungsgemäß im 1.–3. Run.
+
 
 - Erster Run: Tod in Etappe 1–2 nach ~6–10 min, ~60 Karmin / 90 Azur / 20 Ocker → 1–3 Atelier-Käufe.
 - Erster Sieg: nach ~8–15 Runs (4–6 h).

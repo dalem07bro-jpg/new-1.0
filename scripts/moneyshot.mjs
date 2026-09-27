@@ -19,9 +19,16 @@ await page.evaluate(({ herd, boss }) => {
   const blotDef = g.enemies.map((e) => e.def).find((d) => d.id === 'blot');
   window.__scene = { cx, cy, r: 150 };
   g.tutorial = false;
+  if (boss) {
+    const def = window.__content.ENEMY[boss];
+    const b = g.spawnEnemy(def, cx, cy, false);
+    b.speed = 0; b.spawnT = 0; b.hp = b.maxHp * 0.62;
+    g.boss = b; g.bossSpawned = true; g.bossBar = 0.62;
+    window.__bossRef = b;
+  }
   g.run.xp = -1e9; // no level-up modal in the middle of the shot
   g.guardLeft = 999; // the staged shot shouldn't be ruined by a stray spark
-  for (let k = 0; k < herd; k++) {
+  for (let k = 0; k < (boss ? herd / 3 : herd); k++) {
     const a = Math.random() * Math.PI * 2, d = Math.sqrt(Math.random()) * 110;
     const def = blotDef ?? g.enemies[0].def;
     const e = g.spawnEnemy(def, cx + Math.cos(a) * d * 1.1, cy + Math.sin(a) * d * 0.9, false);
@@ -41,17 +48,18 @@ await page.evaluate(({ herd, boss }) => {
     if (d < 12) { window.__wps.shift(); return; }
     g.botMove = { x: dx / d, y: dy / d };
   }, 16);
-}, { herd: Number(herd), boss: !!boss });
+}, { herd: Number(herd), boss });
 // wait for the loop to close, then shoot the flood
 let shots = 0;
 const t0 = Date.now();
 let closedAt = 0;
 while (Date.now() - t0 < 30000 && shots < 6) {
   const st = await page.evaluate(() => ({ trail: window.__hue.game.grid.trail.length, reveals: window.__hue.game.reveals.length, left: window.__wps.length }));
+  if (st.left <= 2 && shots >= 1) await page.evaluate(() => { window.__hue.save.settings.gameSpeed = 0.2; });
   if (!closedAt && st.left <= 1 && st.trail === 0 && st.reveals > 0 && shots >= 1) closedAt = Date.now();
   if (st.left <= 6 && st.left > 1 && shots === 0) { await page.screenshot({ path: `${out}/${name}_lasso.png` }); shots++; }
   if (closedAt) {
-    await page.waitForTimeout(shots === 1 ? 110 : 90);
+    await page.waitForTimeout(shots === 1 ? 250 : 350);
     await page.screenshot({ path: `${out}/${name}_flood${shots}.png` });
     shots++;
   } else await page.waitForTimeout(40);

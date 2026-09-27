@@ -8,7 +8,7 @@ import { detectLang, setLang, t, tr } from './core/i18n';
 import { input } from './core/input';
 import { seedFromString } from './core/rng';
 import { loadSave, wipeSave, writeSave, freshSave, type SaveData } from './core/storage';
-import { BIOMES, CHALLENGES, CHARS } from './data/content';
+import { BIOMES, CHALLENGES, CHARS, ENEMY } from './data/content';
 import { Bot } from './game/bot';
 import { Game, type GameHooks } from './game/game';
 import { awardStars, checkCharUnlocks, checkLifetimeAchievements, finishRun, grantAchievement, todayKey } from './game/meta';
@@ -375,5 +375,6 @@ class Main implements App {
 window.addEventListener('error', (e) => console.error('ERR', e.message));
 const main = new Main();
 (window as any).__hue = main;
+(window as any).__content = { ENEMY }; // used by the screenshot/test tooling
 void BIOMES;
 void CHALLENGES;

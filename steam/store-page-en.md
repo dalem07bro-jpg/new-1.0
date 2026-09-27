@@ -76,15 +76,16 @@ Mild cartoon violence (ink blobs pop into confetti). No blood, no gore, no text 
 ## AI content disclosure (Steamworks survey)
 All art, audio and in-game text are generated procedurally by the game's own code (vector drawing and WebAudio synthesis) — no pre-generated AI images, audio or voice are shipped. The development team used AI coding assistance for parts of the source code and for drafting marketing copy; all output was reviewed by the team.
 
-## Screenshots (upload order)
-1. `steam/screenshots/01_capture.png` — a loop closing around a herd (money shot)
-2. `steam/screenshots/02_boss.png` — lasso around the Smudge King
-3. `steam/screenshots/03_hollow_swarm.png` — late-game chaos in The Hollow
-4. `steam/screenshots/04_ruins.png` — Chalk Ruins: walls as borders
-5. `steam/screenshots/05_ember.png` — Ember Canyon fissures
-6. `steam/screenshots/06_marsh.png` — Inkwater Marsh
-7. `steam/screenshots/07_levelup.png` — build choices (evolution card)
-8. `steam/screenshots/08_title.png` — title / key art
+## Screenshots (upload order, 1920×1080 JPG in `steam/screenshots/`)
+1. `01_capture.jpg` — a loop floods around a grazing herd of ~80 Blotlings (money shot)
+2. `02_lasso.jpg` — drawing the lasso: the line, the herd, the way home
+3. `03_boss.jpg` — the Smudge King caught in a tight loop
+4. `04_ember_spark.jpg` — Ember Canyon: a spark races along the trail while fissures erupt
+5. `05_ruins.jpg` — Chalk Ruins with the *Giants* anomaly: walls count as borders
+6. `06_hollow.jpg` — The Hollow, late game
+7. `07_marsh.jpg` — Inkwater Marsh, Bold Stroke active
+8. `08_levelup.jpg` — build choices with an evolution on offer (German version in `de/`)
+9. `09_title.jpg` — title screen with live attract mode
 
 ## Capsules & library assets
 All in `steam/assets/` — rendered from `tools/keyart.html` at Steam's exact sizes:
