@@ -136,8 +136,9 @@ class Main implements App {
 
   private startAttract() {
     const ids = CHARS.map((c) => c.id);
-    const run = new Run(this.save, ids[Math.floor(Math.random() * ids.length)], 0, 'journey', (Math.random() * 1e9) | 0);
-    run.stageIdx = Math.floor(Math.random() * 3);
+    // the attract-mode demo plays on a throwaway copy so it never touches real stats, codex or unlocks
+    const demoSave: SaveData = JSON.parse(JSON.stringify(this.save));
+    const run = new Run(demoSave, ids[Math.floor(Math.random() * ids.length)], 0, 'journey', (Math.random() * 1e9) | 0);
     run.stageOrder = ['meadows', 'marsh', 'ruins', 'ember', 'hollow'];
     run.stageIdx = Math.floor(Math.random() * 5);
     const g = new Game(run, {
