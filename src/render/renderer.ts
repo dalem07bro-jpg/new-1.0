@@ -617,6 +617,19 @@ export class Renderer {
     ctx.arc(x - r * 0.33 + ex * 1.6, y - r * 0.12 + ey * 1.6, eyeR * 0.5, 0, TAU);
     ctx.arc(x + r * 0.33 + ex * 1.6, y - r * 0.12 + ey * 1.6, eyeR * 0.5, 0, TAU);
     ctx.fill();
+    // herd alertness
+    if (def.herd && e.captureAt < 0) {
+      const mark = e.state === 0 && e.t3 > 0.3 ? '?' : e.state === 1 && e.phase > 0 ? '!' : '';
+      if (mark) {
+        ctx.font = `700 ${Math.max(10, r * 1.3)}px ${FONT}`;
+        ctx.textAlign = 'center';
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#17151f';
+        ctx.strokeText(mark, x, y - r * 1.6);
+        ctx.fillStyle = mark === '!' ? '#ff4d6d' : '#ffd166';
+        ctx.fillText(mark, x, y - r * 1.6);
+      }
+    }
     // hp bar for tanky ones
     if ((e.elite || def.hp >= 40) && e.hp < e.maxHp && !def.immune) {
       ctx.fillStyle = 'rgba(0,0,0,0.6)';

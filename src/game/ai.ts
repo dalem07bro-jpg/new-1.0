@@ -108,6 +108,36 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
   switch (def.ai) {
     case 'chase': {
       const v = toward(e, g.px, g.py);
+      if (def.herd && e.state === 0) {
+        // grazing herd: drift around, aggro when the painter comes close (trails attract attention)
+        // alertness builds while the painter is near; lasso them before they notice!
+        const alertR = g.grid.trail.length > 0 ? 170 : 140;
+        if (v.d < alertR) e.t3 += dt * (v.d < 70 ? 3 : 1);
+        else e.t3 = Math.max(0, e.t3 - dt * 0.5);
+        if (e.t3 > 1.6 || e.hp < e.maxHp) {
+          e.state = 1;
+          e.phase = 0.8; // "!" indicator
+          break;
+        }
+        e.t2 -= dt;
+        if (e.t2 <= 0) {
+          e.t2 = g.rng.range(1, 2.5);
+          // wander, drifting slowly toward the painter so herds come into view
+          const a = g.rng.range(0, TAU);
+          const bias = v.d > 380 ? 0.6 : 0.15;
+          const dx = Math.cos(a) * (1 - bias) + v.x * bias, dy = Math.sin(a) * (1 - bias) + v.y * bias;
+          const m = Math.hypot(dx, dy) || 1;
+          e.dirX = dx / m;
+          e.dirY = dy / m;
+        }
+        moveEnemy(g, e, e.dirX * sp * 0.4, e.dirY * sp * 0.4, dt);
+        break;
+      }
+      if (e.phase > 0) e.phase -= dt;
+      if (def.herd && v.d > 560) {
+        e.state = 0;
+        e.t3 = 0;
+      }
       moveEnemy(g, e, v.x * sp, v.y * sp, dt);
       break;
     }
@@ -229,7 +259,7 @@ export function updateEnemy(g: Game, e: Enemy, dt: number) {
         for (let k = 0; k < 2; k++) {
           const a = g.rng.range(0, TAU);
           const x = e.x + Math.cos(a) * 24, y = e.y + Math.sin(a) * 24;
-          if (!g.isRockWorld(x, y)) g.spawnEnemy(ENEMY[g.biome.id === 'ember' ? 'wisp' : 'blot'], x, y, false);
+          if (!g.isRockWorld(x, y)) g.spawnEnemy(ENEMY[g.biome.id === 'ember' ? 'wisp' : 'blot'], x, y, false).state = 1;
         }
       }
       break;
@@ -256,7 +286,7 @@ function updateBoss(g: Game, e: Enemy, dt: number) {
           const n = hpFrac < 0.5 ? 10 : 7;
           for (let k = 0; k < n; k++) {
             const a = (k / n) * TAU;
-            g.spawnEnemy(ENEMY.blot, e.x + Math.cos(a) * 60, e.y + Math.sin(a) * 60, false).spawnT = 0.5;
+            { const m = g.spawnEnemy(ENEMY.blot, e.x + Math.cos(a) * 60, e.y + Math.sin(a) * 60, false); m.spawnT = 0.5; m.state = 1; }
           }
         }
         e.t3 += dt;

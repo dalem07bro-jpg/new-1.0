@@ -42,6 +42,33 @@ export class Bot {
       }
       return;
     }
+    // lasso a grazing herd if one is close
+    if (Math.random() < 0.75) {
+      let bestN = 0, bx = 0, by = 0, spread = 0;
+      for (const e of g.enemies) {
+        if (e.dead || e.boss || e.state !== 0 || !e.def.herd) continue;
+        if (Math.hypot(e.x - g.px, e.y - g.py) > 420) continue;
+        let n = 0, sx = 0, sy = 0, far = 0;
+        for (const o of g.enemies) {
+          if (o.dead || o.boss) continue;
+          const d = Math.hypot(o.x - e.x, o.y - e.y);
+          if (d < 90) { n++; sx += o.x; sy += o.y; far = Math.max(far, d); }
+        }
+        if (n > bestN) { bestN = n; bx = sx / n; by = sy / n; spread = far; }
+      }
+      if (bestN >= 4) {
+        const r = Math.max(70, spread + 55);
+        const a0 = Math.atan2(g.py - by, g.px - bx);
+        const dir = Math.random() < 0.5 ? 1 : -1;
+        this.wps = [];
+        for (let k = 0; k <= 10; k++) {
+          const a = a0 + dir * (k / 10) * TAU;
+          const x = bx + Math.cos(a) * r, y = by + Math.sin(a) * r;
+          if (this.free(g, x, y)) this.wps.push({ x, y });
+        }
+        if (this.wps.length > 5) return;
+      }
+    }
     let best = -1e9, bestA = 0, bestD = 12;
     for (let k = 0; k < 14; k++) {
       const a = Math.random() * TAU;

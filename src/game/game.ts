@@ -329,6 +329,7 @@ export class Game {
       for (let k = 0; k < 2; k++) {
         const c = this.spawnEnemy(ENEMY.blot, e.x + this.rng.range(-8, 8), e.y + this.rng.range(-8, 8), false);
         c.spawnT = 0.05;
+        c.state = 1;
       }
     }
     this.parts.burst(e.x, e.y, captured ? 14 : 9, col, captured ? 170 : 130, 0.5, captured ? 4 : 3, captured ? 2 : 0);
@@ -863,10 +864,10 @@ export class Game {
     const s = run.stageIdx % 5;
     let count = 0;
     for (const e of this.enemies) if (!e.boss && e.def.ai !== 'nest' && e.def.ai !== 'turret') count++;
-    const spawnMul = (run.varnish >= 4 ? 1.25 : 1) * (1 + 0.5 * run.cycle) * (this.tutorial ? 0.5 : 1) * (this.anomaly?.id === 'swarm' ? 1.5 : 1);
+    const spawnMul = (run.varnish >= 4 ? 1.25 : 1) * (1 + 0.5 * run.cycle) * (this.tutorial ? 0.75 : 1) * (this.anomaly?.id === 'swarm' ? 1.5 : 1);
     const cap = 230 + 60 * run.cycle;
-    const target = Math.min(cap, (16 + 12 * tmin + 6 * s) * spawnMul * (this.boss ? 0.6 : 1));
-    this.spawnAcc += dt * (0.8 + target / 12);
+    const target = Math.min(cap, (22 + 16 * tmin + 8 * s) * spawnMul * (this.boss ? 0.6 : 1));
+    this.spawnAcc += dt * (1.5 + target / 6) * (count < target * 0.5 ? 2 : 1);
     while (this.spawnAcc >= 1) {
       this.spawnAcc -= 1;
       if (count >= target) break;
@@ -882,7 +883,7 @@ export class Game {
         const a = base + (k / n) * TAU;
         const x = clamp(this.px + Math.cos(a) * 400, 20, this.W - 20), y = clamp(this.py + Math.sin(a) * 400, 20, this.H - 20);
         if (this.isRockWorld(x, y)) continue;
-        this.spawnEnemy(ENEMY[this.biome.id === 'ember' ? 'wisp' : 'blot'], x, y, false);
+        this.spawnEnemy(ENEMY[this.biome.id === 'ember' ? 'wisp' : 'blot'], x, y, false).state = 1;
       }
       this.hooks.announce(this.lang('TIDE'), '', '#adb5bd');
     }
@@ -898,13 +899,23 @@ export class Game {
     if (this.tutorial) eliteChance = 0;
     for (let tries = 0; tries < 14; tries++) {
       const a = this.rng.range(0, TAU);
-      const d = this.rng.range(470, 720);
+      const d = def.herd ? this.rng.range(330, 620) : this.rng.range(470, 720);
       const x = this.px + Math.cos(a) * d, y = this.py + Math.sin(a) * d;
       if (x < 15 || y < 15 || x > this.W - 15 || y > this.H - 15) continue;
       const c = this.cellAt(x, y);
       if (c < 0 || this.grid.terrain[c] === Terrain.Rock) continue;
       if (this.grid.owned[c] && tries < 10) continue;
-      this.spawnEnemy(def, x, y, this.rng.chance(eliteChance));
+      const lead = this.spawnEnemy(def, x, y, this.rng.chance(eliteChance));
+      const hunter = def.herd && this.rng.chance(Math.min(0.75, 0.35 + tmin * 0.08));
+      if (hunter) lead.state = 1;
+      if (def.herd && !hunter) {
+        // herds: a few more of the same kind grazing together
+        const n = this.rng.int(2, 4 + Math.floor(tmin));
+        for (let k = 0; k < n; k++) {
+          const hx = x + this.rng.range(-36, 36), hy = y + this.rng.range(-36, 36);
+          if (!this.isRockWorld(hx, hy)) this.spawnEnemy(def, hx, hy, false).dirX = lead.dirX;
+        }
+      }
       return;
     }
   }

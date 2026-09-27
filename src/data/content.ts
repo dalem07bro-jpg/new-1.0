@@ -217,18 +217,19 @@ export interface EnemyDef {
   ai: EnemyAI;
   splits?: boolean;
   immune?: boolean; // only capture kills
+  herd?: boolean; // spawns in groups that graze until aggroed
   bossHp?: number;
 }
 
 export const ENEMIES: EnemyDef[] = [
-  { id: 'blot', ai: 'chase', r: 8, hp: 10, speed: 72, dmg: 8, xp: 1, color: '#8d99ae', name: { en: 'Blotling', de: 'Klecksling' }, desc: { en: 'A hungry drop of grey. Comes in crowds.', de: 'Ein hungriger grauer Tropfen. Kommt in Scharen.' } },
-  { id: 'drip', ai: 'chase', r: 12, hp: 38, speed: 42, dmg: 12, xp: 3, color: '#6c757d', name: { en: 'Drip', de: 'Tropfer' }, desc: { en: 'Slow and heavy. Soaks up hits.', de: 'Langsam und schwer. Steckt viel ein.' } },
+  { id: 'blot', ai: 'chase', herd: true, r: 8, hp: 10, speed: 72, dmg: 8, xp: 1, color: '#8d99ae', name: { en: 'Blotling', de: 'Klecksling' }, desc: { en: 'A hungry drop of grey. Comes in crowds.', de: 'Ein hungriger grauer Tropfen. Kommt in Scharen.' } },
+  { id: 'drip', ai: 'chase', herd: true, r: 12, hp: 38, speed: 42, dmg: 12, xp: 3, color: '#6c757d', name: { en: 'Drip', de: 'Tropfer' }, desc: { en: 'Slow and heavy. Soaks up hits.', de: 'Langsam und schwer. Steckt viel ein.' } },
   { id: 'snip', ai: 'trail', r: 8, hp: 14, speed: 98, dmg: 6, xp: 2, color: '#f72585', name: { en: 'Snipper', de: 'Schnipsler' }, desc: { en: 'Ignores you. Hunts your trail.', de: 'Ignoriert dich. Jagt deine Spur.' } },
   { id: 'spit', ai: 'ranged', r: 10, hp: 22, speed: 56, dmg: 10, xp: 3, color: '#4cc9f0', name: { en: 'Spitter', de: 'Spucker' }, desc: { en: 'Lobs ink. Ink ignites trails.', de: 'Spuckt Tinte. Tinte entzündet Spuren.' } },
   { id: 'leech', ai: 'leech', r: 10, hp: 30, speed: 62, dmg: 6, xp: 4, color: '#80ed99', name: { en: 'Leech', de: 'Egel' }, desc: { en: 'Drains the color from your land.', de: 'Saugt die Farbe aus deinem Land.' } },
   { id: 'charge', ai: 'charger', r: 11, hp: 48, speed: 50, dmg: 16, xp: 4, color: '#ff9f1c', name: { en: 'Charger', de: 'Rammer' }, desc: { en: 'Winds up, then rams in a straight line.', de: 'Holt Anlauf und rammt geradeaus.' } },
   { id: 'sentinel', ai: 'turret', r: 13, hp: 90, speed: 0, dmg: 10, xp: 8, color: '#e9c46a', name: { en: 'Sentinel', de: 'Wächter' }, desc: { en: 'A rooted ruin-guard. Capture it for treasure.', de: 'Ein verwurzelter Ruinenwächter. Fang ihn für Schätze.' } },
-  { id: 'split', ai: 'chase', r: 11, hp: 42, speed: 58, dmg: 10, xp: 3, splits: true, color: '#b5179e', name: { en: 'Splitter', de: 'Spalter' }, desc: { en: 'Splits in two when killed – but not when captured.', de: 'Teilt sich beim Tod – aber nicht, wenn gefangen.' } },
+  { id: 'split', ai: 'chase', herd: true, r: 11, hp: 42, speed: 58, dmg: 10, xp: 3, splits: true, color: '#b5179e', name: { en: 'Splitter', de: 'Spalter' }, desc: { en: 'Splits in two when killed – but not when captured.', de: 'Teilt sich beim Tod – aber nicht, wenn gefangen.' } },
   { id: 'wisp', ai: 'wisp', r: 7, hp: 9, speed: 135, dmg: 7, xp: 1, color: '#ffb627', name: { en: 'Cinder Wisp', de: 'Glutirrlicht' }, desc: { en: 'Fast and erratic.', de: 'Schnell und unberechenbar.' } },
   { id: 'phantom', ai: 'phantom', r: 10, hp: 1, speed: 64, dmg: 12, xp: 7, immune: true, color: '#e0aaff', name: { en: 'Phantom', de: 'Phantom' }, desc: { en: 'Immune to all damage. Only a loop can catch it.', de: 'Immun gegen jeden Schaden. Nur eine Schleife fängt es.' } },
   { id: 'nest', ai: 'nest', r: 17, hp: 160, speed: 0, dmg: 0, xp: 10, color: '#5a189a', name: { en: 'Void Nest', de: 'Leerennest' }, desc: { en: 'Spawns Blotlings. Capture or destroy it.', de: 'Brütet Kleckslinge aus. Fang oder zerstöre es.' } },

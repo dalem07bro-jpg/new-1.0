@@ -32,6 +32,7 @@ const DEBUG = {
   relics: Number(params.get('relics') ?? 0),
   fill: Number(params.get('fill') ?? 0),
   goal: Number(params.get('goal') ?? 0),
+  biome: params.get('biome'),
   fast: Math.max(1, Number(params.get('fast') ?? 1)),
   demo: params.has('demo') || (import.meta as any).env?.VITE_DEMO === '1',
 };
@@ -143,6 +144,7 @@ class Main implements App {
     this.attract = null;
     this.run = new Run(this.save, charId, varnish, mode, seed);
     if (DEBUG.stage > 0) this.run.stageIdx = Math.min(4, DEBUG.stage - 1);
+    if (DEBUG.biome) this.run.stageOrder[this.run.stageIdx] = DEBUG.biome;
     for (let k = 0; k < DEBUG.level; k++) {
       this.run.level++;
       this.run.applyCard(this.run.offer(3)[0]);
@@ -152,7 +154,7 @@ class Main implements App {
       if (r) this.run.addRelic(r);
     }
     this.save.stats.runs; // counted at finish
-    const tutorial = !this.save.tutorialDone && mode === 'journey';
+    const tutorial = !this.save.tutorialDone && mode === 'journey' && !DEBUG.bot;
     this.newStage(tutorial);
     this.ui.popAll();
     this.renderer.hudVisible = !DEBUG.nohud;
