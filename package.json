@@ -1,0 +1,56 @@
+{
+  "name": "hue-and-claim",
+  "productName": "HUE & CLAIM",
+  "version": "1.0.0",
+  "description": "A territory-claiming roguelite: draw loops, repaint a drained world, trap whole hordes in a single stroke.",
+  "private": true,
+  "type": "module",
+  "main": "electron/main.cjs",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "build:single": "vite build --mode single",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "electron": "electron .",
+    "dist:win": "npm run build && electron-builder --win --x64",
+    "dist:linux": "npm run build && electron-builder --linux --x64"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.6",
+    "vite-plugin-singlefile": "^2.3.3",
+    "vitest": "^3.2.7"
+  },
+  "build": {
+    "appId": "com.hueandclaim.game",
+    "productName": "HUE & CLAIM",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**",
+      "electron/**",
+      "package.json"
+    ],
+    "asarUnpack": [
+      "node_modules/steamworks.js/**"
+    ],
+    "win": {
+      "target": "dir",
+      "icon": "steam/assets/icon_256.png"
+    },
+    "linux": {
+      "target": "dir",
+      "icon": "steam/assets/icon_256.png"
+    }
+  },
+  "dependencies": {
+    "@fontsource/fredoka": "^5.3.0",
+    "steamworks.js": "^0.4.0"
+  }
+}
